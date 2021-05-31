@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'dart:developer';
 
 import 'package:flutter/foundation.dart';
 import '../models/activity_model.dart';
@@ -66,14 +67,16 @@ class CityProvider with ChangeNotifier {
     }
   }
 
-  Future<dynamic> verifyIfActivityNameIsUnique(
+  Future<String?> verifyIfActivityNameIsUnique(
       String cityName, String activityName) async {
     try {
       City city = getCityByName(cityName);
       http.Response response = await http.get(Uri.parse(
           '$host/api/city/${city.id}/activities/verify/$activityName'));
-      if (response.body != null) {
+      if (response.statusCode != 200) {
         return json.decode(response.body);
+      } else {
+        return null;
       }
     } catch (e) {
       rethrow;

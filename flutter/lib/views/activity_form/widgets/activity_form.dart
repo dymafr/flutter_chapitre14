@@ -17,7 +17,7 @@ class _ActivityFormState extends State<ActivityForm> {
   late FocusNode _priceFocusNode;
   late FocusNode _urlFocusNode;
   late Activity _newActivity;
-  late String _nameInputAsync;
+  String? _nameInputAsync;
   bool _isLoading = false;
   FormState get form {
     return _formKey.currentState!;
@@ -46,17 +46,18 @@ class _ActivityFormState extends State<ActivityForm> {
 
   Future<void> submitForm() async {
     try {
+      CityProvider cityProvider = Provider.of<CityProvider>(
+        context,
+        listen: false,
+      );
+      form.validate();
+      _formKey.currentState!.save();
+      setState(() => _isLoading = true);
+      _nameInputAsync = await cityProvider.verifyIfActivityNameIsUnique(
+        widget.cityName,
+        _newActivity.name,
+      );
       if (form.validate()) {
-        CityProvider cityProvider = Provider.of<CityProvider>(
-          context,
-          listen: false,
-        );
-        _formKey.currentState!.save();
-        setState(() => _isLoading = true);
-        _nameInputAsync = await cityProvider.verifyIfActivityNameIsUnique(
-          widget.cityName,
-          _newActivity.name,
-        );
         await cityProvider.addActivityToCity(_newActivity);
         Navigator.pop(context);
       } else {
@@ -80,6 +81,8 @@ class _ActivityFormState extends State<ActivityForm> {
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Remplissez le nom';
+                } else if (_nameInputAsync != null) {
+                  return _nameInputAsync;
                 }
                 return null;
               },
