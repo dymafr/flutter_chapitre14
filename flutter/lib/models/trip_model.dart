@@ -23,15 +23,27 @@ class Trip {
             .toList();
 
   Map<String, dynamic> toJson() {
-    return {
-      '_id': id,
-      'city': city,
-      'date': date!.toIso8601String(),
-      'activities': activities
-          .map(
-            (activity) => activity.toJson(),
-          )
-          .toList()
-    };
+    if (id != null) {
+      return {
+        '_id': id,
+        'city': city,
+        'date': date!.toIso8601String(),
+        'activities': activities
+            .map(
+              (activity) => activity.toJson(),
+        )
+            .toList()
+      };
+    } else {
+      return {
+        'city': city,
+        'date': date!.toIso8601String(),
+        'activities': activities
+            .map(
+              (activity) => activity.toJson(),
+        )
+            .toList(),
+      };
+    }
   }
 }
