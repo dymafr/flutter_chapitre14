@@ -3,7 +3,7 @@ const City = require('./models/city.model');
 
 mongoose
   .connect(
-    'mongodb+srv://jean:123@cluster0-urpjt.gcp.mongodb.net/dymatrip?retryWrites=true&w=majority'
+    'VOTRE_URL_ATLAS'
   )
   .then(() => {
     Promise.all([

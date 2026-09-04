@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import 'models/city_model.dart';
+import 'models/trip_model.dart';
 import 'providers/trip_provider.dart';
 import 'providers/city_provider.dart';
 import 'views/city/city_view.dart';
@@ -9,7 +12,7 @@ import 'views/trip/trip_view.dart';
 import 'views/activity_form/activity_form_view.dart';
 import './views/home/home_view.dart';
 
-main() {
+void main() {
   runApp(const DymaTrip());
 }
 
@@ -39,17 +42,46 @@ class _DymaTripState extends State<DymaTrip> {
         ChangeNotifierProvider.value(value: tripProvider),
       ],
       child: MaterialApp(
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+          useMaterial3: true,
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Colors.blue,
+            foregroundColor: Colors.white,
+          ),
+        ),
         debugShowCheckedModeBanner: false,
         routes: {
           '/': (context) => const HomeView(),
           CityView.routeName: (_) => const CityView(),
           TripsView.routeName: (_) => const TripsView(),
-          TripView.routeName: (_) => const TripView(),
           ActivityFormView.routeName: (_) => const ActivityFormView(),
         },
-        onUnknownRoute: (_) => MaterialPageRoute(
-          builder: (_) => const NotFound(),
-        ),
+        onGenerateRoute: (RouteSettings settings) {
+          if (settings.name != TripView.routeName) return null;
+          final Object? arguments = settings.arguments;
+          if (arguments is! TripRouteArguments) {
+            throw ArgumentError.value(
+              arguments,
+              'settings.arguments',
+              'Un objet TripRouteArguments est requis pour /trip.',
+            );
+          }
+          return MaterialPageRoute<void>(
+            settings: settings,
+            builder: (BuildContext context) {
+              final Trip trip = context.read<TripProvider>().getById(
+                arguments.tripId,
+              );
+              final City city = context.read<CityProvider>().getCityByName(
+                arguments.cityName,
+              );
+              return TripView(trip: trip, city: city);
+            },
+          );
+        },
+        onUnknownRoute: (_) =>
+            MaterialPageRoute(builder: (_) => const NotFound()),
       ),
     );
   }

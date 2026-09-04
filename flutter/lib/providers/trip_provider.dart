@@ -1,10 +1,11 @@
 import 'dart:collection';
 import 'dart:convert';
-import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
+import 'package:http/http.dart' as http;
+
 import '../models/activity_model.dart';
 import '../models/trip_model.dart';
-import 'package:http/http.dart' as http;
 
 class TripProvider extends ChangeNotifier {
   final String host = 'localhost';
@@ -16,16 +17,18 @@ class TripProvider extends ChangeNotifier {
   Future<void> fetchData() async {
     try {
       isLoading = true;
+      notifyListeners();
       http.Response response = await http.get(Uri.http(host, '/api/trips'));
       if (response.statusCode == 200) {
         _trips = (json.decode(response.body) as List)
             .map((tripJson) => Trip.fromJson(tripJson))
             .toList();
-        isLoading = false;
-        notifyListeners();
       }
+      isLoading = false;
+      notifyListeners();
     } catch (e) {
       isLoading = false;
+      notifyListeners();
       rethrow;
     }
   }
@@ -34,17 +37,11 @@ class TripProvider extends ChangeNotifier {
     try {
       http.Response response = await http.post(
         Uri.http(host, '/api/trip'),
-        body: json.encode(
-          trip.toJson(),
-        ),
-        headers: {'Content-type': 'application/json'},
+        body: json.encode(trip.toJson()),
+        headers: {'Content-Type': 'application/json'},
       );
       if (response.statusCode == 200) {
-        _trips.add(
-          Trip.fromJson(
-            json.decode(response.body),
-          ),
-        );
+        _trips.add(Trip.fromJson(json.decode(response.body)));
         notifyListeners();
       }
     } catch (e) {
@@ -53,25 +50,30 @@ class TripProvider extends ChangeNotifier {
   }
 
   Future<void> updateTrip(Trip trip, String activityId) async {
+    final Activity activity = trip.activities.firstWhere(
+      (activity) => activity.id == activityId,
+      orElse: () => throw StateError(
+        'Aucune activité $activityId dans le voyage ${trip.city}.',
+      ),
+    );
+    final ActivityStatus previousStatus = activity.status;
+    activity.status = ActivityStatus.done;
     try {
-      Activity activity =
-      trip.activities.firstWhere((activity) => activity.id == activityId);
-      activity.status = ActivityStatus.done;
       http.Response response = await http.put(
         Uri.http(host, '/api/trip'),
-        body: json.encode(
-          trip.toJson(),
-        ),
-        headers: {'Content-type': 'application/json'},
+        body: json.encode(trip.toJson()),
+        headers: {'Content-Type': 'application/json'},
       );
       if (response.statusCode != 200) {
-        activity.status = ActivityStatus.ongoing;
-        throw const HttpException('error');
+        throw Exception(
+          'Le serveur a refusé la mise à jour (statut ${response.statusCode}).',
+        );
       }
-      notifyListeners();
-    } catch (e) {
+    } catch (_) {
+      activity.status = previousStatus;
       rethrow;
     }
+    notifyListeners();
   }
 
   Trip getById(String id) {

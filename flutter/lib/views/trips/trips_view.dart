@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../providers/trip_provider.dart';
 import '../../widgets/dyma_loader.dart';
 import 'widgets/trip_list.dart';
 import '../../widgets/dyma_drawer.dart';
+import '../home/home_view.dart';
 
 class TripsView extends StatelessWidget {
   static const String routeName = '/trips';
@@ -20,36 +22,48 @@ class TripsView extends StatelessWidget {
           title: const Text('Mes voyages'),
           bottom: const TabBar(
             tabs: <Widget>[
-              Tab(
-                text: 'A venir',
-              ),
-              Tab(
-                text: 'Passés',
-              ),
+              Tab(text: 'A venir'),
+              Tab(text: 'Passés'),
             ],
           ),
         ),
-        drawer: const DymaDrawer(),
+        drawer: DymaDrawer(
+          onHomeSelected: () {
+            Navigator.popUntil(
+              context,
+              ModalRoute.withName(HomeView.routeName),
+            );
+          },
+          onTripsSelected: () {},
+        ),
         body: tripProvider.isLoading == false
             ? tripProvider.trips.isNotEmpty
-            ? TabBarView(
-          children: <Widget>[
-            TripList(
-              trips: tripProvider.trips
-                  .where((trip) => DateTime.now().isBefore(trip.date!))
-                  .toList(),
-            ),
-            TripList(
-              trips: tripProvider.trips
-                  .where((trip) => DateTime.now().isAfter(trip.date!))
-                  .toList(),
-            ),
-          ],
-        )
-            : Container(
-          alignment: Alignment.center,
-          child: const Text('Aucun voyage pour le moment'),
-        )
+                  ? TabBarView(
+                      children: <Widget>[
+                        TripList(
+                          trips: tripProvider.trips
+                              .where(
+                                (trip) =>
+                                    trip.date != null &&
+                                    DateTime.now().isBefore(trip.date!),
+                              )
+                              .toList(),
+                        ),
+                        TripList(
+                          trips: tripProvider.trips
+                              .where(
+                                (trip) =>
+                                    trip.date != null &&
+                                    DateTime.now().isAfter(trip.date!),
+                              )
+                              .toList(),
+                        ),
+                      ],
+                    )
+                  : Container(
+                      alignment: Alignment.center,
+                      child: const Text('Aucun voyage pour le moment'),
+                    )
             : const DymaLoader(),
       ),
     );

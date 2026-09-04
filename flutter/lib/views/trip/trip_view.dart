@@ -1,33 +1,35 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'widgets/trip_weather.dart';
-import '../../providers/city_provider.dart';
+
+import '../../models/city_model.dart';
+import '../../models/trip_model.dart';
 import 'widgets/trip_activities.dart';
 import 'widgets/trip_city_bar.dart';
-import '../../models/city_model.dart';
+import 'widgets/trip_weather.dart';
+
+class TripRouteArguments {
+  const TripRouteArguments({required this.tripId, required this.cityName});
+
+  final String tripId;
+  final String cityName;
+}
 
 class TripView extends StatelessWidget {
+  const TripView({required this.trip, required this.city, super.key});
+
   static const String routeName = '/trip';
 
-  const TripView({super.key});
+  final Trip trip;
+  final City city;
 
   @override
   Widget build(BuildContext context) {
-    final String cityName = (ModalRoute.of(context)!.settings.arguments
-    as Map<String, String>)['cityName']!;
-    final String tripId = (ModalRoute.of(context)!.settings.arguments
-    as Map<String, String>)['tripId']!;
-    final City city = Provider.of<CityProvider>(context, listen: false)
-        .getCityByName(cityName);
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
           children: <Widget>[
-            TripCityBar(
-              city: city,
-            ),
-            TripWeather(cityName: cityName),
-            TripActivities(tripId: tripId)
+            TripCityBar(city: city),
+            TripWeather(cityName: city.name),
+            TripActivities(tripId: trip.id!),
           ],
         ),
       ),

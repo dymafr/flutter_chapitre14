@@ -1,48 +1,45 @@
 import 'package:flutter/material.dart';
 
-import '../views/home/home_view.dart';
-import '../views/trips/trips_view.dart';
-
 class DymaDrawer extends StatelessWidget {
-  const DymaDrawer({super.key});
+  const DymaDrawer({
+    required this.onHomeSelected,
+    required this.onTripsSelected,
+    super.key,
+  });
+
+  final VoidCallback onHomeSelected;
+  final VoidCallback onTripsSelected;
+
+  void _select(BuildContext context, VoidCallback action) {
+    Navigator.pop(context);
+    action();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final ColorScheme colors = Theme.of(context).colorScheme;
+
     return Drawer(
       child: ListView(
+        padding: EdgeInsets.zero,
         children: <Widget>[
           DrawerHeader(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Theme.of(context).primaryColor,
-                  Theme.of(context).primaryColor.withOpacity(0.5),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-            child: const Text(
+            decoration: BoxDecoration(color: colors.primaryContainer),
+            child: Text(
               'Dyma Trip',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 30,
-              ),
+              style: Theme.of(context).textTheme.headlineMedium
+                  ?.copyWith(color: colors.onPrimaryContainer),
             ),
           ),
           ListTile(
             leading: const Icon(Icons.home),
             title: const Text('Accueil'),
-            onTap: () {
-              Navigator.pushNamed(context, HomeView.routeName);
-            },
+            onTap: () => _select(context, onHomeSelected),
           ),
           ListTile(
             leading: const Icon(Icons.flight),
             title: const Text('Mes voyages'),
-            onTap: () {
-              Navigator.pushNamed(context, TripsView.routeName);
-            },
+            onTap: () => _select(context, onTripsSelected),
           ),
         ],
       ),

@@ -18,8 +18,9 @@ class _ActivityFormState extends State<ActivityForm> {
   late FocusNode _priceFocusNode;
   late FocusNode _urlFocusNode;
   late Activity _newActivity;
-  late String? _nameInputAsync;
   bool _isLoading = false;
+  String? _nameInputAsync;
+
   FormState get form {
     return _formKey.currentState!;
   }
@@ -35,8 +36,39 @@ class _ActivityFormState extends State<ActivityForm> {
     );
     _priceFocusNode = FocusNode();
     _urlFocusNode = FocusNode();
-    _nameInputAsync = null;
     super.initState();
+  }
+
+  Future<void> submitForm() async {
+    form.save();
+    setState(() => _isLoading = true);
+    try {
+      final cityProvider = Provider.of<CityProvider>(context, listen: false);
+      _nameInputAsync = await cityProvider.verifyIfActivityNameIsUnique(
+        widget.cityName,
+        _newActivity.name,
+      );
+      if (!form.validate()) {
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
+        return;
+      }
+      await cityProvider.addActivityToCity(_newActivity);
+      if (mounted) {
+        setState(() => _isLoading = false);
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('L\'activité n\'a pas pu être enregistrée'),
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -44,29 +76,6 @@ class _ActivityFormState extends State<ActivityForm> {
     _priceFocusNode.dispose();
     _urlFocusNode.dispose();
     super.dispose();
-  }
-
-  Future<void> submitForm() async {
-    try {
-      CityProvider cityProvider = Provider.of<CityProvider>(
-        context,
-        listen: false,
-      );
-      _formKey.currentState!.save();
-      setState(() => _isLoading = true);
-      _nameInputAsync = await cityProvider.verifyIfActivityNameIsUnique(
-        widget.cityName,
-        _newActivity.name,
-      );
-      if (form.validate()) {
-        await cityProvider.addActivityToCity(_newActivity);
-        if (mounted) Navigator.pop(context);
-      } else {
-        setState(() => _isLoading = false);
-      }
-    } catch (e) {
-      setState(() => _isLoading = false);
-    }
   }
 
   @override
@@ -79,62 +88,48 @@ class _ActivityFormState extends State<ActivityForm> {
           children: <Widget>[
             TextFormField(
               autofocus: true,
+              decoration: const InputDecoration(labelText: 'Nom'),
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Remplissez le nom';
-                } else if (_nameInputAsync != null) {
-                  return _nameInputAsync;
                 }
-                return null;
+                return _nameInputAsync;
               },
-              textInputAction: TextInputAction.next,
-              decoration: const InputDecoration(
-                labelText: 'Nom',
-              ),
               onSaved: (value) => _newActivity.name = value!,
               onFieldSubmitted: (_) =>
                   FocusScope.of(context).requestFocus(_priceFocusNode),
+              textInputAction: TextInputAction.next,
             ),
-            const SizedBox(
-              height: 10,
-            ),
+            const SizedBox(height: 10),
             TextFormField(
               keyboardType: TextInputType.number,
-              textInputAction: TextInputAction.next,
               focusNode: _priceFocusNode,
-              decoration: const InputDecoration(
-                hintText: 'Prix',
-              ),
-              onFieldSubmitted: (_) =>
-                  FocusScope.of(context).requestFocus(_urlFocusNode),
+              decoration: const InputDecoration(hintText: 'Prix'),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Remplissez le Prix';
+                  return 'Remplissez le prix';
                 }
                 return null;
               },
               onSaved: (value) => _newActivity.price = double.parse(value!),
+              onFieldSubmitted: (_) =>
+                  FocusScope.of(context).requestFocus(_urlFocusNode),
+              textInputAction: TextInputAction.next,
             ),
-            const SizedBox(
-              height: 10,
-            ),
+            const SizedBox(height: 10),
             TextFormField(
               keyboardType: TextInputType.url,
               focusNode: _urlFocusNode,
+              decoration: const InputDecoration(hintText: 'Url image'),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Remplissez l\'url';
+                  return 'Remplissez l\'Url';
                 }
                 return null;
               },
-              decoration: const InputDecoration(
-                hintText: 'Url image',
-              ),
               onSaved: (value) => _newActivity.image = value!,
             ),
-            const SizedBox(
-              height: 10,
-            ),
+            const SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: <Widget>[
@@ -147,7 +142,7 @@ class _ActivityFormState extends State<ActivityForm> {
                   child: const Text('sauvegarder'),
                 ),
               ],
-            )
+            ),
           ],
         ),
       ),

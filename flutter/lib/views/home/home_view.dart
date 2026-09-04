@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../providers/city_provider.dart';
 import '../../models/city_model.dart';
 import '../../widgets/dyma_drawer.dart';
+import '../trips/trips_view.dart';
 import '../../widgets/dyma_loader.dart';
 import 'widgets/city_card.dart';
 
@@ -18,7 +20,7 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeState extends State<HomeView> {
-  TextEditingController searchController = TextEditingController();
+  final TextEditingController searchController = TextEditingController();
 
   @override
   void initState() {
@@ -37,13 +39,17 @@ class _HomeState extends State<HomeView> {
   @override
   Widget build(BuildContext context) {
     CityProvider cityProvider = Provider.of<CityProvider>(context);
-    List<City> filteredCities =
-    cityProvider.getFilteredCities(searchController.text);
+    List<City> filteredCities = cityProvider.getFilteredCities(
+      searchController.text,
+    );
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('dymatrip'),
+      appBar: AppBar(title: const Text('dymatrip')),
+      drawer: DymaDrawer(
+        onHomeSelected: () {},
+        onTripsSelected: () {
+          Navigator.pushNamed<void>(context, TripsView.routeName);
+        },
       ),
-      drawer: const DymaDrawer(),
       body: Column(
         children: <Widget>[
           Container(
@@ -56,16 +62,14 @@ class _HomeState extends State<HomeView> {
                     controller: searchController,
                     decoration: const InputDecoration(
                       hintText: 'Rechercher une ville',
-                      prefixIcon: Icon(
-                        Icons.search,
-                      ),
+                      prefixIcon: Icon(Icons.search),
                     ),
                   ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.clear),
-                  onPressed: () => setState(() => searchController.clear()),
-                )
+                  onPressed: searchController.clear,
+                ),
               ],
             ),
           ),
@@ -74,17 +78,19 @@ class _HomeState extends State<HomeView> {
               padding: const EdgeInsets.all(10),
               child: RefreshIndicator(
                 displacement: 100.0,
-                onRefresh:
-                Provider.of<CityProvider>(context, listen: false).fetchData,
-                child: cityProvider.isLoading
+                onRefresh: Provider.of<CityProvider>(
+                  context,
+                  listen: false,
+                ).fetchData,
+                child: cityProvider.isLoading && cityProvider.cities.isEmpty
                     ? const DymaLoader()
                     : filteredCities.isNotEmpty
                     ? ListView.builder(
-                  itemCount: filteredCities.length,
-                  itemBuilder: (_, i) => CityCard(
-                    city: filteredCities[i],
-                  ),
-                )
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        itemCount: filteredCities.length,
+                        itemBuilder: (_, i) =>
+                            CityCard(city: filteredCities[i]),
+                      )
                     : const Text('Aucun résultat'),
               ),
             ),

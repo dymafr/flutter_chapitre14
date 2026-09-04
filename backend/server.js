@@ -10,7 +10,7 @@ app.use(cors());
 mongoose.set('debug', true);
 mongoose
   .connect(
-    'mongodb+srv://jean:123@cluster0-urpjt.gcp.mongodb.net/dymatrip?retryWrites=true&w=majority'
+    'VOTRE_URL_ATLAS'
   )
   .then(() => console.log('connexion ok !'));
 

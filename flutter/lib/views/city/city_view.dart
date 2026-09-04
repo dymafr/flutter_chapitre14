@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../models/city_model.dart';
 import '../../models/activity_model.dart';
 import '../../models/trip_model.dart';
 import '../../providers/city_provider.dart';
 import '../../providers/trip_provider.dart';
 import '../../widgets/dyma_drawer.dart';
-import '../activity_form/activity_form_view.dart';
 import '../home/home_view.dart';
+import '../trips/trips_view.dart';
+import '../activity_form/activity_form_view.dart';
 import 'widgets/trip_activity_list.dart';
 import 'widgets/activity_list.dart';
 import 'widgets/trip_overview.dart';
-
 
 class CityView extends StatefulWidget {
   static const String routeName = '/city';
@@ -30,11 +31,7 @@ class _CityState extends State<CityView> {
   void initState() {
     super.initState();
     index = 0;
-    mytrip = Trip(
-      activities: [],
-      date: null,
-      city: '',
-    );
+    mytrip = Trip(activities: [], date: null, city: '');
   }
 
   double get amount {
@@ -58,7 +55,7 @@ class _CityState extends State<CityView> {
     });
   }
 
-  void switchIndex(newIndex) {
+  void switchIndex(int newIndex) {
     setState(() {
       index = newIndex;
     });
@@ -95,11 +92,11 @@ class _CityState extends State<CityView> {
                     Navigator.pop(context, 'cancel');
                   },
                 ),
-                const SizedBox(
-                  width: 20,
-                ),
+                const SizedBox(width: 20),
                 ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).primaryColor),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).primaryColor,
+                  ),
                   onPressed: () {
                     Navigator.pop(context, 'save');
                   },
@@ -109,7 +106,7 @@ class _CityState extends State<CityView> {
                   ),
                 ),
               ],
-            )
+            ),
           ],
         );
       },
@@ -125,12 +122,11 @@ class _CityState extends State<CityView> {
               TextButton(
                 child: const Text('Ok'),
                 onPressed: () => Navigator.pop(context),
-              )
+              ),
             ],
           ),
         );
       }
-
     } else if (result == 'save') {
       if (mounted) {
         mytrip.city = cityName;
@@ -156,28 +152,36 @@ class _CityState extends State<CityView> {
               ActivityFormView.routeName,
               arguments: cityName,
             ),
-          )
+          ),
         ],
       ),
-      drawer: const DymaDrawer(),
+      drawer: DymaDrawer(
+        onHomeSelected: () {
+          Navigator.popUntil(context, ModalRoute.withName(HomeView.routeName));
+        },
+        onTripsSelected: () {
+          Navigator.pushNamed<void>(context, TripsView.routeName);
+        },
+      ),
       body: Column(
         children: <Widget>[
           TripOverview(
-              cityName: city.name,
-              mytrip: mytrip,
-              setDate: setDate,
-              amount: amount),
+            cityName: city.name,
+            mytrip: mytrip,
+            setDate: setDate,
+            amount: amount,
+          ),
           Expanded(
             child: index == 0
                 ? ActivityList(
-              activities: city.activities,
-              selectedActivities: mytrip.activities,
-              toggleActivity: toggleActivity,
-            )
+                    activities: city.activities,
+                    selectedActivities: mytrip.activities,
+                    onToggle: toggleActivity,
+                  )
                 : TripActivityList(
-              activities: mytrip.activities,
-              deleteTripActivity: deleteTripActivity,
-            ),
+                    activities: mytrip.activities,
+                    onDelete: deleteTripActivity,
+                  ),
           ),
         ],
       ),
@@ -188,14 +192,11 @@ class _CityState extends State<CityView> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: index,
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.map),
-            label: 'Découverte',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Découverte'),
           BottomNavigationBarItem(
             icon: Icon(Icons.stars),
             label: 'Mes activités',
-          )
+          ),
         ],
         onTap: switchIndex,
       ),

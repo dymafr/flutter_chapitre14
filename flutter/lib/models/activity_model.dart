@@ -17,13 +17,14 @@ class Activity {
   });
 
   Activity.fromJson(Map<String, dynamic> json)
-      : id = json['_id'],
-        name = json['name'],
-        image = json['image'],
-        city = json['city'],
-        price = json['price'].toDouble(),
-        status =
-        json['status'] == 0 ? ActivityStatus.ongoing : ActivityStatus.done;
+    : id = json['_id'],
+      name = json['name'],
+      image = json['image'],
+      city = json['city'],
+      price = (json['price'] as num).toDouble(),
+      status = json['status'] == 0
+          ? ActivityStatus.ongoing
+          : ActivityStatus.done;
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> value = {
@@ -31,7 +32,7 @@ class Activity {
       'image': image,
       'city': city,
       'price': price,
-      'status': status == ActivityStatus.ongoing ? 0 : 1
+      'status': status == ActivityStatus.ongoing ? 0 : 1,
     };
     if (id != null) {
       value['_id'] = id;

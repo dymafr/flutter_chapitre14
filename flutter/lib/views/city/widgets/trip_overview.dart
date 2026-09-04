@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
 import '../../../models/trip_model.dart';
 
 class TripOverview extends StatelessWidget {
@@ -8,18 +9,19 @@ class TripOverview extends StatelessWidget {
   final String cityName;
   final double amount;
 
-  const TripOverview({super.key, required this.setDate, required this.mytrip, required this.cityName, required this.amount});
+  const TripOverview({
+    super.key,
+    required this.cityName,
+    required this.setDate,
+    required this.mytrip,
+    required this.amount,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final orientation = MediaQuery.of(context).orientation;
-    final size = MediaQuery.of(context).size;
-
     return Container(
       padding: const EdgeInsets.all(10),
       height: 200,
-      width:
-      orientation == Orientation.landscape ? size.width * 0.5 : size.width,
       color: Colors.white,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -31,9 +33,7 @@ class TripOverview extends StatelessWidget {
               decoration: TextDecoration.underline,
             ),
           ),
-          const SizedBox(
-            height: 30,
-          ),
+          const SizedBox(height: 30),
           Row(
             children: <Widget>[
               Expanded(
@@ -41,18 +41,16 @@ class TripOverview extends StatelessWidget {
                   mytrip.date != null
                       ? DateFormat('d/M/y').format(mytrip.date!)
                       : 'Sélectionnez une date',
-                  style: const TextStyle(fontSize: 15),
+                  style: const TextStyle(fontSize: 20),
                 ),
               ),
               ElevatedButton(
                 onPressed: setDate,
                 child: const Text('Sélectionnez une date'),
-              )
+              ),
             ],
           ),
-          const SizedBox(
-            height: 30,
-          ),
+          const SizedBox(height: 30),
           Row(
             children: <Widget>[
               const Expanded(
@@ -62,12 +60,12 @@ class TripOverview extends StatelessWidget {
                 ),
               ),
               Text(
-                '$amount€',
+                '$amount €',
                 style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
-              )
+              ),
             ],
           ),
         ],
